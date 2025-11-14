@@ -2,7 +2,7 @@
 #define FFT_H
 
 #include <vector>
-#include "../utils/NumeroComplejo.h"
+#include "../utilidades/NumeroComplejo.h"
 
 class FFT {
 public:
