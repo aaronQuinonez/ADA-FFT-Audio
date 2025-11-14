@@ -1,1 +1,18 @@
+*.o
+*.exe
+*.out
+build/
+cmake-build-*/
+
+# Archivos de IDE
 .vscode/
+.idea/
+*.swp
+
+# Archivos de audio grandes
+*.mp3
+data/samples/*.wav
+
+# Archivos de resultados
+*.txt
+!README.md
