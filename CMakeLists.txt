@@ -6,9 +6,10 @@ set(CMAKE_CXX_STANDARD 17)
 # Agregar archivos fuente
 add_executable(reconocimiento_audio
     src/main.cpp
-    src/fft/FFT.cpp
     src/audio/LectorAudio.cpp
     src/utilidades/NumeroComplejo.cpp
+    src/fft/FFT.cpp
+    src/procesamiento/Espectrograma.cpp
 )
 
 # Incluir directorios
