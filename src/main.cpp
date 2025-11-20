@@ -8,6 +8,7 @@
 #include "audio/LectorAudio.h"
 #include "fft/FFT.h"
 #include "procesamiento/Espectrograma.h"
+#include "procesamiento/DetectorPicos.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -75,18 +76,46 @@ int main(int argc, char* argv[]) {
         auto bandasEspectrograma = Espectrograma::dividirEnBandas(espectrograma, bandas);
         Espectrograma::exportarBandasCSV(bandasEspectrograma, bandas, "bandas_frecuencia.csv");
         
+        // ========== FASE 3: Detección de Picos ==========
+        std::cout << "\n=== FASE 3: DETECCIÓN DE PICOS ESPECTRALES ===" << std::endl;
+        
+        DetectorPicos::Configuracion configPicos;
+        configPicos.umbralMagnitud = 0.1;
+        configPicos.vecinosLocales = 3;
+        configPicos.picosPorBanda = 5;
+        configPicos.usarAdaptativo = true;
+        configPicos.percentilUmbral = 75.0;
+        
+        // Detectar picos en el espectrograma completo
+        auto picosCompletos = DetectorPicos::detectarPicos(espectrograma, configPicos);
+        DetectorPicos::exportarCSV(picosCompletos, "picos_completos.csv");
+        DetectorPicos::exportarConstelacion(picosCompletos, "constelacion.txt");
+        
+        // Detectar picos en las bandas de frecuencia
+        auto picosBandas = DetectorPicos::detectarPicosEnBandas(
+            bandasEspectrograma, bandas, espectrograma.resolucionTemporal, configPicos
+        );
+        DetectorPicos::exportarCSV(picosBandas, "picos_bandas.csv");
+        
+        // Filtrar picos por rango de frecuencia (ejemplo: 100-5000 Hz)
+        auto picosFiltrados = DetectorPicos::filtrarPicos(
+            picosCompletos.picos, 0.15, 100.0, 5000.0
+        );
+        std::cout << "\nPicos filtrados (100-5000 Hz, mag>0.15): " 
+                  << picosFiltrados.size() << std::endl;
+        
         // Mostrar estadísticas finales
         std::cout << "\n=== RESUMEN FINAL ===" << std::endl;
         std::cout << "✓ Fase 1 completada: Audio leído y procesado" << std::endl;
         std::cout << "✓ Fase 2 completada: Espectrograma generado" << std::endl;
+        std::cout << "✓ Fase 3 completada: Picos detectados" << std::endl;
         std::cout << "\nArchivos generados:" << std::endl;
-        std::cout << "  1. espectrograma.csv - Espectrograma completo ("
-                  << espectrograma.magnitudes.size() << "×" 
-                  << espectrograma.numFrecuencias << ")" << std::endl;
-        std::cout << "  2. bandas_frecuencia.csv - Bandas de frecuencia ("
-                  << bandasEspectrograma.size() << "×" 
-                  << bandas.size() << ")" << std::endl;
-        
+        std::cout << "  1. espectrograma.csv - Espectrograma completo" << std::endl;
+        std::cout << "  2. bandas_frecuencia.csv - Bandas de frecuencia" << std::endl;
+        std::cout << "  3. picos_completos.csv - Picos detectados (espectrograma completo)" << std::endl;
+        std::cout << "  4. picos_bandas.csv - Picos detectados (por bandas)" << std::endl;
+        std::cout << "  5. constelacion.txt - Constelación de picos" << std::endl;
+        std::cout << "\n¡Listo para continuar con Fase 4: Generación de Hashes!" << std::endl;
     } catch (const std::exception& excepcion) {
         std::cerr << "Error: " << excepcion.what() << std::endl;
         return 1;
