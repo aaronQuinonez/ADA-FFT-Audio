@@ -14,5 +14,4 @@ cmake-build-*/
 data/samples/*.wav
 
 # Archivos de resultados
-*.txt
 !README.md
