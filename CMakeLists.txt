@@ -10,6 +10,7 @@ add_executable(reconocimiento_audio
     src/utilidades/NumeroComplejo.cpp
     src/fft/FFT.cpp
     src/procesamiento/Espectrograma.cpp
+    src/procesamiento/DetectorPicos.cpp
 )
 
 # Incluir directorios
