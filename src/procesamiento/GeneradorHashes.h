@@ -4,92 +4,100 @@
 #include <vector>
 #include <string>
 #include <cstdint>
-#include "DetectorPicos.h"
+#include "DetectorPicos.h" // Incluye tu archivo DetectorPicos.h
 
 class GeneradorHashes {
 public:
-    // Estructura para representar un hash generado
-    struct Hash {
-        uint32_t valor;              // Hash de 32 bits
-        double tiempoAncla;          // Timestamp del pico ancla en la canción
-        int indiceAncla;             // Índice del pico ancla
-        int indiceObjetivo;          // Índice del pico objetivo
-        
-        Hash(uint32_t v, double t, int a, int o)
-            : valor(v), tiempoAncla(t), indiceAncla(a), indiceObjetivo(o) {}
-    };
-    
-    // Configuración del generador
+    // Configuración avanzada para la generación de fingerprints
     struct Configuracion {
-        double ventanaTemporalMs = 200.0;      // Ventana de tiempo para emparejar (ms)
-        int maxPicosObjetivo = 5;              // Máximo de picos objetivo por ancla
-        double frecuenciaMinima = 30.0;        // Frecuencia mínima en Hz
-        double frecuenciaMaxima = 5000.0;      // Frecuencia máxima en Hz
-        int bitsFrequenciaAncla = 9;           // Bits para frecuencia ancla (0-511)
-        int bitsFrequenciaObjetivo = 9;        // Bits para frecuencia objetivo (0-511)
-        int bitsDiferenciaTemporal = 14;       // Bits para diferencia temporal (0-16383)
+        double ventanaTemporalMs = 2000.0;    // Ventana de búsqueda (2 segundos)
+        int maxPicosObjetivo = 5;             // Picos objetivo por ancla
+        
+        // Rango de frecuencias a considerar
+        double frecuenciaMinima = 30.0;
+        double frecuenciaMaxima = 5000.0;
+        
+        // Distribución de bits para el Hash (Total 32 bits)
+        // 9 + 9 + 14 = 32 bits
+        int bitsFrequenciaAncla = 9;
+        int bitsFrequenciaObjetivo = 9;
+        int bitsDiferenciaTemporal = 14;
     };
-    
-    // Resultado de la generación
+
+    // Estructura de un Hash individual
+    struct Hash {
+        uint32_t valor;
+        double tiempoAncla;
+        size_t indiceAncla;
+        size_t indiceObjetivo;
+
+        Hash(uint32_t v, double t, size_t ia, size_t io) 
+            : valor(v), tiempoAncla(t), indiceAncla(ia), indiceObjetivo(io) {}
+    };
+
+    // Estructura para devolver los resultados y estadísticas
     struct Resultado {
         std::vector<Hash> hashes;
-        int totalHashesGenerados;
-        int totalPicosUsados;
-        double densidadHashes;         // Hashes por segundo
+        int totalHashesGenerados = 0;
+        size_t totalPicosUsados = 0;
+        double densidadHashes = 0.0;
     };
-    
-    // Generar hashes a partir de picos detectados
+
+    struct HashDecodificado {
+        int frecuenciaAncla;
+        int frecuenciaObjetivo;
+        int diferenciaTemporal;
+    };
+
+    // --- MÉTODOS PRINCIPALES ---
+
+    // Método principal para generar los hashes
     static Resultado generarHashes(
-        const std::vector<DetectorPicos::Pico>& picos,
+        const std::vector<DetectorPicos::Pico>& picos, // <--- CAMBIO AQUÍ
         const Configuracion& config
     );
+
+    // Exportar a TXT
+    static void exportarHashes(
+        const Resultado& resultado,
+        const std::string& nombreArchivo,
+        const std::string& nombreCancion = "Desconocida"
+    );
+
+    // Exportar a Binario
+    static void exportarHashesBinario(
+        const Resultado& resultado,
+        const std::string& nombreArchivo
+    );
+
+private:
+    // --- MÉTODOS INTERNOS (AUXILIARES) ---
     
-    // Codificar par de picos como hash de 32 bits
     static uint32_t codificarHash(
         double frecuenciaAncla,
         double frecuenciaObjetivo,
         double diferenciaTemporal,
         const Configuracion& config
     );
-    
-    // Decodificar hash de 32 bits
-    struct HashDecodificado {
-        int frecuenciaAncla;
-        int frecuenciaObjetivo;
-        int diferenciaTemporal;
-    };
-    static HashDecodificado decodificarHash(uint32_t hash, const Configuracion& config);
-    
-    // Exportar hashes a archivo
-    static void exportarHashes(
-        const Resultado& resultado,
-        const std::string& nombreArchivo,
-        const std::string& nombreCancion = "desconocido"
+
+    static HashDecodificado decodificarHash(
+        uint32_t hash, 
+        const Configuracion& config
     );
-    
-    // Exportar hashes en formato binario (más eficiente)
-    static void exportarHashesBinario(
-        const Resultado& resultado,
-        const std::string& nombreArchivo
-    );
-    
-    // Filtrar picos por rango de frecuencia antes de generar hashes
-    static std::vector<DetectorPicos::Pico> filtrarPicosPorFrecuencia(
+
+    static std::vector<DetectorPicos::Pico> filtrarPicosPorFrecuencia( // <--- CAMBIO AQUÍ
         const std::vector<DetectorPicos::Pico>& picos,
         double frecuenciaMin,
         double frecuenciaMax
     );
-    
-private:
-    // Cuantizar frecuencia al número de bits especificado
+
     static int cuantizarFrecuencia(
         double frecuencia,
         double frecuenciaMin,
         double frecuenciaMax,
         int numBits
     );
-    
-    // Cuantizar diferencia temporal
+
     static int cuantizarTiempo(
         double diferenciaMs,
         double ventanaMaxMs,
