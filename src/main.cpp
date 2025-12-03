@@ -9,6 +9,7 @@
 #include "fft/FFT.h"
 #include "procesamiento/Espectrograma.h"
 #include "procesamiento/DetectorPicos.h"
+#include "procesamiento/GeneradorHashes.h" 
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -76,8 +77,8 @@ int main(int argc, char* argv[]) {
         auto bandasEspectrograma = Espectrograma::dividirEnBandas(espectrograma, bandas);
         Espectrograma::exportarBandasCSV(bandasEspectrograma, bandas, "bandas_frecuencia.csv");
         
-        // ========== FASE 3: Detección de Picos ==========
-        std::cout << "\n=== FASE 3: DETECCIÓN DE PICOS ESPECTRALES ===" << std::endl;
+        // ========== FASE 3 y 4: Detección de Picos ==========
+        std::cout << "\n=== FASE 3 y 4: DETECCIÓN DE PICOS ESPECTRALES ===" << std::endl;
         
         DetectorPicos::Configuracion configPicos;
         configPicos.umbralMagnitud = 0.1;
@@ -91,33 +92,58 @@ int main(int argc, char* argv[]) {
         DetectorPicos::exportarCSV(picosCompletos, "picos_completos.csv");
         DetectorPicos::exportarConstelacion(picosCompletos, "constelacion.txt");
         
-        // Detectar picos en las bandas de frecuencia
+        // Detectar picos en las bandas de frecuencia (Opcional, pero útil para debug)
         auto picosBandas = DetectorPicos::detectarPicosEnBandas(
             bandasEspectrograma, bandas, espectrograma.resolucionTemporal, configPicos
         );
         DetectorPicos::exportarCSV(picosBandas, "picos_bandas.csv");
         
-        // Filtrar picos por rango de frecuencia (ejemplo: 100-5000 Hz)
+        // Filtrar picos por rango de frecuencia (ejemplo: 100-5000 Hz) para generar hashes limpios
         auto picosFiltrados = DetectorPicos::filtrarPicos(
             picosCompletos.picos, 0.15, 100.0, 5000.0
         );
-        std::cout << "\nPicos filtrados (100-5000 Hz, mag>0.15): " 
+        std::cout << "\nPicos filtrados para Hashing (100-5000 Hz, mag>0.15): " 
                   << picosFiltrados.size() << std::endl;
+
+        // ========== FASE 5: Generación de Hashes (Fingerprints) ==========
+        std::cout << "\n=== FASE 5: GENERACIÓN DE HASHES (FINGERPRINTS) ===" << std::endl;
         
-        // Mostrar estadísticas finales
-        std::cout << "\n=== RESUMEN FINAL ===" << std::endl;
-        std::cout << "✓ Fase 1 completada: Audio leído y procesado" << std::endl;
-        std::cout << "✓ Fase 2 completada: Espectrograma generado" << std::endl;
-        std::cout << "✓ Fase 3 completada: Picos detectados" << std::endl;
-        std::cout << "\nArchivos generados:" << std::endl;
-        std::cout << "  1. espectrograma.csv - Espectrograma completo" << std::endl;
-        std::cout << "  2. bandas_frecuencia.csv - Bandas de frecuencia" << std::endl;
-        std::cout << "  3. picos_completos.csv - Picos detectados (espectrograma completo)" << std::endl;
-        std::cout << "  4. picos_bandas.csv - Picos detectados (por bandas)" << std::endl;
-        std::cout << "  5. constelacion.txt - Constelación de picos" << std::endl;
-        std::cout << "\n¡Listo para continuar con Fase 4: Generación de Hashes!" << std::endl;
+        GeneradorHashes::Configuracion configHashes;
+        configHashes.frecuenciaMuestreo = audio.frecuenciaMuestreo;
+        configHashes.tamanoFFT = config.tamanoVentana; // Usamos 1024, igual que en espectrograma
+        
+        // Generar las huellas digitales usando los picos filtrados
+        auto fingerprints = GeneradorHashes::generar(picosFiltrados, configHashes);
+        
+        // Exportar a archivo de texto para inspección
+        GeneradorHashes::exportarTXT(fingerprints, "fingerprints.txt");
+
+        if (!fingerprints.empty()) {
+            std::cout << "Total de Fingerprints generados: " << fingerprints.size() << std::endl;
+            std::cout << "Ejemplo de Hash: " << fingerprints[0].hash 
+                      << " (t=" << fingerprints[0].tiempoAncla << "s)" << std::endl;
+        } else {
+            std::cout << "[ADVERTENCIA] No se generaron fingerprints. Revisa los umbrales de picos." << std::endl;
+        }
+
+        // ========== RESUMEN FINAL ==========
+        std::cout << "\n=== RESUMEN FINAL DEL SISTEMA ===" << std::endl;
+        std::cout << "Fase 1: Audio leído y normalizado" << std::endl;
+        std::cout << "Fase 2: Espectrograma generado (" << espectrograma.datos.size() << " ventanas)" << std::endl;
+        std::cout << "Fase 3/4: Picos detectados (" << picosFiltrados.size() << " picos útiles)" << std::endl;
+        std::cout << "Fase 5: Hashes generados (" << fingerprints.size() << " huellas)" << std::endl;
+        
+        std::cout << "\nArchivos de salida generados:" << std::endl;
+        std::cout << "  1. espectrograma.csv" << std::endl;
+        std::cout << "  2. bandas_frecuencia.csv" << std::endl;
+        std::cout << "  3. picos_completos.csv" << std::endl;
+        std::cout << "  4. constelacion.txt" << std::endl;
+        std::cout << "  5. fingerprints.txt  <-- NUEVO (Tu huella digital)" << std::endl;
+        
+        std::cout << "\n¡El sistema está listo para la Fase 6: Base de Datos y Búsqueda!" << std::endl;
+        
     } catch (const std::exception& excepcion) {
-        std::cerr << "Error: " << excepcion.what() << std::endl;
+        std::cerr << "Error crítico en main: " << excepcion.what() << std::endl;
         return 1;
     }
     
