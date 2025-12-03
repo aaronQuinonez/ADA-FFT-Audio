@@ -11,7 +11,9 @@ add_executable(reconocimiento_audio
     src/fft/FFT.cpp
     src/procesamiento/Espectrograma.cpp
     src/procesamiento/DetectorPicos.cpp
+    src/procesamiento/GeneradorHashes.cpp
 )
 
 # Incluir directorios
+
 target_include_directories(reconocimiento_audio PRIVATE src)
