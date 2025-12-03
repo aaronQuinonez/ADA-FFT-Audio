@@ -77,8 +77,8 @@ int main(int argc, char* argv[]) {
         auto bandasEspectrograma = Espectrograma::dividirEnBandas(espectrograma, bandas);
         Espectrograma::exportarBandasCSV(bandasEspectrograma, bandas, "bandas_frecuencia.csv");
         
-        // ========== FASE 3 y 4: Detección de Picos ==========
-        std::cout << "\n=== FASE 3 y 4: DETECCIÓN DE PICOS ESPECTRALES ===" << std::endl;
+        // ========== FASE 4: Detección de Picos ==========
+        std::cout << "\n=== FASE 4: DETECCIÓN DE PICOS ESPECTRALES ===" << std::endl;
         
         DetectorPicos::Configuracion configPicos;
         configPicos.umbralMagnitud = 0.1;
@@ -108,7 +108,6 @@ int main(int argc, char* argv[]) {
         // ========== FASE 5: Generación de Hashes (Fingerprints) ==========
         std::cout << "\n=== FASE 5: GENERACIÓN DE HASHES (FINGERPRINTS) ===" << std::endl;
         
-        // CONFIGURACIÓN CORREGIDA
         GeneradorHashes::Configuracion configHashes;
         configHashes.ventanaTemporalMs = 2000.0; // Buscar objetivos en los siguientes 2 segundos
         configHashes.maxPicosObjetivo = 5;       // Emparejar cada ancla con máximo 5 objetivos
@@ -116,16 +115,13 @@ int main(int argc, char* argv[]) {
         configHashes.frecuenciaMaxima = 5000.0;
         
         // Generar las huellas digitales usando los picos filtrados
-        // CORRECCIÓN: Usar generarHashes en lugar de generar
         auto resultadoHashes = GeneradorHashes::generarHashes(picosFiltrados, configHashes);
         
         // Exportar a archivo de texto
-        // CORRECCIÓN: Usar exportarHashes y pasar el resultado
         GeneradorHashes::exportarHashes(resultadoHashes, "fingerprints.csv", nombreArchivo);
 
         if (!resultadoHashes.hashes.empty()) {
             std::cout << "Total de Fingerprints generados: " << resultadoHashes.totalHashesGenerados << std::endl;
-            // CORRECCIÓN: Acceder a hashes[0].valor en lugar de hash
             std::cout << "Ejemplo de Hash: 0x" << std::hex << resultadoHashes.hashes[0].valor 
                       << std::dec << " (t=" << resultadoHashes.hashes[0].tiempoAncla << "s)" << std::endl;
         } else {
@@ -133,22 +129,25 @@ int main(int argc, char* argv[]) {
         }
 
         // ========== RESUMEN FINAL ==========
-        std::cout << "\n=== RESUMEN FINAL DEL SISTEMA ===" << std::endl;
-        std::cout << "Fase 1: Audio leído y normalizado" << std::endl;
-        // NOTA: Asegúrate que en Espectrograma.h tu vector se llame 'magnitudes' o 'datos'
-        // Si sale error aquí, cambia .magnitudes por .datos o .matriz
-        std::cout << "Fase 2: Espectrograma generado OK" << std::endl; 
-        std::cout << "Fase 3/4: Picos detectados (" << picosFiltrados.size() << " picos útiles)" << std::endl;
-        std::cout << "Fase 5: Hashes generados (" << resultadoHashes.totalHashesGenerados << " huellas)" << std::endl;
+        std::cout << "\n=============================================" << std::endl;
+        std::cout << "       RESUMEN FINAL DEL SISTEMA             " << std::endl;
+        std::cout << "=============================================" << std::endl;
         
-        std::cout << "\nArchivos de salida generados:" << std::endl;
+        std::cout << "[ OK ] Fase 1: Audio leído (" << audio.duracion << " seg, " << audio.frecuenciaMuestreo << " Hz)" << std::endl;
+        std::cout << "[ OK ] Fase 2: Espectrograma generado exitosamente" << std::endl;
+        std::cout << "[ OK ] Fase 3: División en 5 bandas de frecuencia" << std::endl;
+        std::cout << "[ OK ] Fase 4: " << picosFiltrados.size() << " picos detectados (filtrados)" << std::endl;
+        std::cout << "[ OK ] Fase 5: " << resultadoHashes.totalHashesGenerados << " fingerprints generados" << std::endl;
+        
+        std::cout << "\nArchivos de salida generados en carpeta build:" << std::endl;
         std::cout << "  1. espectrograma.csv" << std::endl;
         std::cout << "  2. bandas_frecuencia.csv" << std::endl;
         std::cout << "  3. picos_completos.csv" << std::endl;
         std::cout << "  4. constelacion.txt" << std::endl;
         std::cout << "  5. fingerprints.csv" << std::endl;
         
-        std::cout << "\n¡El sistema está listo para la Fase 6: Base de Datos y Búsqueda!" << std::endl;
+        std::cout << "\n>> El sistema está listo para la Fase 6: Base de Datos y Búsqueda" << std::endl;
+        std::cout << "=============================================" << std::endl;
         
     } catch (const std::exception& excepcion) {
         std::cerr << "Error crítico en main: " << excepcion.what() << std::endl;
