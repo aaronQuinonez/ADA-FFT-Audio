@@ -1,5 +1,6 @@
 // src/audio/LectorAudio.cpp
 #include "LectorAudio.h"
+#include <cstdint>
 #include <iostream>
 #include <fstream>
 #include <cstring>
