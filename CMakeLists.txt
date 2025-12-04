@@ -12,6 +12,8 @@ add_executable(reconocimiento_audio
     src/procesamiento/Espectrograma.cpp
     src/procesamiento/DetectorPicos.cpp
     src/procesamiento/GeneradorHashes.cpp
+    src/indexacion/IndiceInvertido.cpp
+    src/indexacion/BaseDatosHashes.cpp
 )
 
 # Incluir directorios
