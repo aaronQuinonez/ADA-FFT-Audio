@@ -11,6 +11,7 @@ cmake-build-*/
 
 # Archivos de audio grandes
 *.mp3
+./datos/muestras/*.wav
 
 # Archivos de resultados
 !README.md
