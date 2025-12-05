@@ -14,6 +14,8 @@ add_executable(reconocimiento_audio
     src/procesamiento/GeneradorHashes.cpp
     src/indexacion/IndiceInvertido.cpp
     src/indexacion/BaseDatosHashes.cpp
+    src/busqueda/SistemaVotacion.cpp
+    src/busqueda/BuscadorCanciones.cpp
 )
 
 # Incluir directorios
